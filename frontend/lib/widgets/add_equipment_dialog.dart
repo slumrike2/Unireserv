@@ -93,7 +93,7 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
                   children: [
                     _buildField('Nombre del Equipo', _nombreController),
                     const SizedBox(height: 16),
-                    
+
                     // Type dropdown
                     const Text(
                       'Tipo de Equipo',
@@ -101,7 +101,9 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: _tipoController.text.isEmpty ? null : _tipoController.text,
+                      value: _tipoController.text.isEmpty
+                          ? null
+                          : _tipoController.text,
                       onChanged: (value) => _tipoController.text = value ?? '',
                       dropdownColor: const Color(0xFF374151),
                       decoration: const InputDecoration(
@@ -109,14 +111,18 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
                         hintText: 'Selecciona el tipo de equipo',
                         hintStyle: TextStyle(color: Colors.grey),
                       ),
-                      items: _equipmentTypes.map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type, style: const TextStyle(color: Colors.white)),
-                      )).toList(),
+                      items: _equipmentTypes
+                          .map((type) => DropdownMenuItem(
+                                value: type,
+                                child: Text(type,
+                                    style:
+                                        const TextStyle(color: Colors.white)),
+                              ))
+                          .toList(),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Status dropdown
                     const Text(
                       'Estado Inicial',
@@ -125,20 +131,31 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
                       value: _selectedStatus,
-                      onChanged: (value) => setState(() => _selectedStatus = value!),
+                      onChanged: (value) =>
+                          setState(() => _selectedStatus = value!),
                       dropdownColor: const Color(0xFF374151),
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                       ),
                       items: const [
-                        DropdownMenuItem(value: 'disponible', child: Text('Disponible', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'ocupado', child: Text('Ocupado', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'dañado', child: Text('En Mantenimiento', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(
+                            value: 'disponible',
+                            child: Text('Disponible',
+                                style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(
+                            value: 'ocupado',
+                            child: Text('Ocupado',
+                                style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(
+                            value: 'dañado',
+                            child: Text('En Mantenimiento',
+                                style: TextStyle(color: Colors.white))),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    _buildField('Observaciones', _observacionesController, maxLines: 3),
+                    _buildField('Observaciones', _observacionesController,
+                        maxLines: 3),
                   ],
                 ),
               ),
@@ -186,7 +203,8 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildField(String label, TextEditingController controller,
+      {int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -207,6 +225,19 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
     );
   }
 
+  String _mapStatus(String status) {
+    switch (status) {
+      case 'disponible':
+        return 'available';
+      case 'ocupado':
+        return 'unavailable';
+      case 'dañado':
+        return 'maintenance';
+      default:
+        return 'available';
+    }
+  }
+
   void _addEquipment() {
     if (_nombreController.text.isEmpty || _tipoController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -220,15 +251,16 @@ class _AddEquipmentDialogState extends State<AddEquipmentDialog> {
 
     final newEquipment = Equipment(
       id: DateTime.now().millisecondsSinceEpoch, // Simple ID generation
-      nombre: _nombreController.text,
-      tipo: _tipoController.text,
-      estado: _selectedStatus,
-      ultimoMantenimiento: DateTime.now().toString().substring(0, 10),
-      observaciones: _observacionesController.text.isEmpty ? null : _observacionesController.text,
+      laboratoryId: 0, // Set this to the correct lab id if available
+      numEquipment: _nombreController.text,
+      status: _mapStatus(_selectedStatus),
+      description: _tipoController.text,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
 
     widget.onAdd(newEquipment);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Equipo agregado exitosamente'),

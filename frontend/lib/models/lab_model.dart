@@ -1,18 +1,24 @@
-class Lab {
+class Laboratory {
   final int id;
-  final String nombre;
-  final int capacidad;
-  final int equipos;
-  final String ubicacion;
-  final Map<String, Map<String, Reservation>> reservas;
+  final String name;
+  final String location;
+  final int capacity;
+  final String openTime;
+  final String closeTime;
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  Lab({
+  Laboratory({
     required this.id,
-    required this.nombre,
-    required this.capacidad,
-    required this.equipos,
-    required this.ubicacion,
-    required this.reservas,
+    required this.name,
+    required this.location,
+    required this.capacity,
+    required this.openTime,
+    required this.closeTime,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
   });
 }
 
@@ -30,22 +36,22 @@ class Reservation {
 
 class Equipment {
   final int id;
-  final String nombre;
-  final String tipo;
-  final String estado; // 'disponible', 'ocupado', 'dañado'
-  final String ultimoMantenimiento;
-  final String? observaciones;
-  final bool isOperational;
+  final int laboratoryId;
+  final String numEquipment;
+  final String status; // 'available', 'unavailable', 'maintenance'
+  final String? description;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   Equipment({
     required this.id,
-    required this.nombre,
-    required this.tipo,
-    required this.estado,
-    required this.ultimoMantenimiento,
-    this.observaciones,
-    bool? isOperational,
-  }) : isOperational = isOperational ?? (estado == 'disponible' || estado == 'ocupado');
+    required this.laboratoryId,
+    required this.numEquipment,
+    required this.status,
+    this.description,
+    required this.createdAt,
+    required this.updatedAt,
+  });
 }
 
 class SelectedSlot {

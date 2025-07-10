@@ -13,7 +13,7 @@ class AdminEquipmentScreen extends StatefulWidget {
 }
 
 class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
-  late Lab lab;
+  late Laboratory lab;
   List<Equipment> equipmentList = [];
   bool isLoading = true;
   bool isAdmin = true; // Aquí puedes poner la lógica real de admin
@@ -22,7 +22,7 @@ class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
   void initState() {
     super.initState();
     // Simulación de carga de laboratorio y equipos
-    lab = LabData.getLabs().firstWhere((l) => l.id == widget.labId);
+    lab = LabData.getLaboratories().firstWhere((l) => l.id == widget.labId);
     equipmentList = LabData.getEquipmentForLab(widget.labId);
     isLoading = false;
   }
@@ -49,7 +49,7 @@ class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
   void _showAddEquipmentDialog() async {
     final nombreController = TextEditingController();
     final tipoController = TextEditingController();
-    String estado = 'disponible';
+    String estado = 'available';
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -59,22 +59,23 @@ class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
           children: [
             TextField(
               controller: nombreController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
+              decoration: const InputDecoration(labelText: 'Identificador'),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: tipoController,
-              decoration: const InputDecoration(labelText: 'Tipo'),
+              decoration: const InputDecoration(labelText: 'Descripción'),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: estado,
               onChanged: (v) => estado = v!,
               items: const [
+                DropdownMenuItem(value: 'available', child: Text('Disponible')),
                 DropdownMenuItem(
-                    value: 'disponible', child: Text('Disponible')),
-                DropdownMenuItem(value: 'ocupado', child: Text('Ocupado')),
-                DropdownMenuItem(value: 'dañado', child: Text('Dañado')),
+                    value: 'unavailable', child: Text('No disponible')),
+                DropdownMenuItem(
+                    value: 'maintenance', child: Text('Mantenimiento')),
               ],
               decoration: const InputDecoration(labelText: 'Estado'),
             ),
@@ -92,10 +93,12 @@ class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
                 setState(() {
                   equipmentList.add(Equipment(
                     id: DateTime.now().millisecondsSinceEpoch,
-                    nombre: nombreController.text,
-                    tipo: tipoController.text,
-                    estado: estado,
-                    ultimoMantenimiento: '',
+                    laboratoryId: lab.id,
+                    numEquipment: nombreController.text,
+                    status: estado,
+                    description: tipoController.text,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
                   ));
                 });
                 Navigator.pop(context);
@@ -111,7 +114,7 @@ class _AdminEquipmentScreenState extends State<AdminEquipmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Administrar equipos - ${lab.nombre}')),
+      appBar: AppBar(title: Text('Administrar equipos - ${lab.name}')),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(

@@ -18,20 +18,19 @@ class EquipmentDetailDialog extends StatefulWidget {
 }
 
 class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
-  late TextEditingController _nombreController;
-  late TextEditingController _tipoController;
-  late TextEditingController _observacionesController;
+  late TextEditingController _numEquipmentController;
+  late TextEditingController _descriptionController;
   late String _selectedStatus;
   bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _nombreController = TextEditingController(text: widget.equipment.nombre);
-    _tipoController = TextEditingController(text: widget.equipment.tipo);
-    _observacionesController =
-        TextEditingController(text: widget.equipment.observaciones ?? '');
-    _selectedStatus = widget.equipment.estado;
+    _numEquipmentController =
+        TextEditingController(text: widget.equipment.numEquipment);
+    _descriptionController =
+        TextEditingController(text: widget.equipment.description ?? '');
+    _selectedStatus = widget.equipment.status;
   }
 
   @override
@@ -60,8 +59,8 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
               child: Row(
                 children: [
                   Icon(
-                    _getEquipmentIcon(widget.equipment.tipo),
-                    color: _getStatusColor(widget.equipment.estado),
+                    _getEquipmentIcon(widget.equipment.description),
+                    color: _getStatusColor(widget.equipment.status),
                     size: 32,
                   ),
                   const SizedBox(width: 12),
@@ -70,20 +69,21 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.equipment.nombre,
+                          widget.equipment.numEquipment,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          widget.equipment.tipo,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 14,
+                        if (widget.equipment.description != null)
+                          Text(
+                            widget.equipment.description!,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -115,25 +115,25 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(widget.equipment.estado)
+                        color: _getStatusColor(widget.equipment.status)
                             .withOpacity(0.2),
                         border: Border.all(
-                            color: _getStatusColor(widget.equipment.estado)),
+                            color: _getStatusColor(widget.equipment.status)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _getStatusIcon(widget.equipment.estado),
-                            color: _getStatusColor(widget.equipment.estado),
+                            _getStatusIcon(widget.equipment.status),
+                            color: _getStatusColor(widget.equipment.status),
                             size: 16,
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            widget.equipment.estado.toUpperCase(),
+                            widget.equipment.status.toUpperCase(),
                             style: TextStyle(
-                              color: _getStatusColor(widget.equipment.estado),
+                              color: _getStatusColor(widget.equipment.status),
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -146,11 +146,10 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
 
                     if (_isEditing && widget.isAdmin) ...[
                       // Edit form
-                      _buildEditField('Nombre del Equipo', _nombreController),
+                      _buildEditField('Identificador', _numEquipmentController),
                       const SizedBox(height: 16),
-                      _buildEditField('Tipo de Equipo', _tipoController),
+                      _buildEditField('Descripción', _descriptionController),
                       const SizedBox(height: 16),
-
                       // Status dropdown
                       const Text(
                         'Estado',
@@ -167,62 +166,33 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                         ),
                         items: const [
                           DropdownMenuItem(
-                              value: 'disponible',
+                              value: 'available',
                               child: Text('Disponible',
                                   style: TextStyle(color: Colors.white))),
                           DropdownMenuItem(
-                              value: 'ocupado',
-                              child: Text('Ocupado',
+                              value: 'unavailable',
+                              child: Text('No disponible',
                                   style: TextStyle(color: Colors.white))),
                           DropdownMenuItem(
-                              value: 'dañado',
-                              child: Text('Dañado',
+                              value: 'maintenance',
+                              child: Text('Mantenimiento',
                                   style: TextStyle(color: Colors.white))),
                         ],
                       ),
-
-                      const SizedBox(height: 16),
-                      _buildEditField('Observaciones', _observacionesController,
-                          maxLines: 3),
                     ] else ...[
                       // View mode
                       _buildInfoRow('ID', widget.equipment.id.toString()),
-                      _buildInfoRow('Nombre', widget.equipment.nombre),
-                      _buildInfoRow('Tipo', widget.equipment.tipo),
-                      _buildInfoRow('Estado', widget.equipment.estado),
-                      _buildInfoRow('Último Mantenimiento',
-                          widget.equipment.ultimoMantenimiento),
-                      if (widget.equipment.observaciones?.isNotEmpty == true)
+                      _buildInfoRow(
+                          'Identificador', widget.equipment.numEquipment),
+                      if (widget.equipment.description != null)
                         _buildInfoRow(
-                            'Observaciones', widget.equipment.observaciones!),
-
-                      // Operational status
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Icon(
-                            widget.equipment.isOperational
-                                ? Icons.check_circle
-                                : Icons.error,
-                            color: widget.equipment.isOperational
-                                ? Colors.green
-                                : Colors.red,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            widget.equipment.isOperational
-                                ? 'Operacional'
-                                : 'No Operacional',
-                            style: TextStyle(
-                              color: widget.equipment.isOperational
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                            'Descripción', widget.equipment.description!),
+                      _buildInfoRow(
+                          'Estado', _statusLabel(widget.equipment.status)),
+                      _buildInfoRow(
+                          'Creado', widget.equipment.createdAt.toString()),
+                      _buildInfoRow(
+                          'Actualizado', widget.equipment.updatedAt.toString()),
                     ],
                   ],
                 ),
@@ -323,12 +293,12 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'disponible':
+      case 'available':
         return Colors.green;
-      case 'ocupado':
+      case 'unavailable':
         return Colors.red;
-      case 'dañado':
-        return Colors.yellow;
+      case 'maintenance':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
@@ -336,53 +306,57 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
 
   IconData _getStatusIcon(String status) {
     switch (status) {
-      case 'disponible':
+      case 'available':
         return Icons.check_circle;
-      case 'ocupado':
+      case 'unavailable':
         return Icons.cancel;
-      case 'dañado':
-        return Icons.warning;
+      case 'maintenance':
+        return Icons.build;
       default:
         return Icons.help;
     }
   }
 
-  IconData _getEquipmentIcon(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'computadora':
-      case 'proyector':
-      case 'proyector 4k':
-        return Icons.computer;
-      case 'sistema audio':
-      case 'micrófono':
-        return Icons.volume_up;
-      case 'router':
-      case 'switch':
-        return Icons.router;
-      case 'osciloscopio':
-      case 'multímetro':
-      case 'fuente de poder':
-      case 'generador':
-        return Icons.electrical_services;
-      case 'cámara':
-        return Icons.videocam;
-      case 'pantalla':
-        return Icons.tv;
+  IconData _getEquipmentIcon(String? description) {
+    final desc = (description ?? '').toLowerCase();
+    if (desc.contains('computadora')) return Icons.computer;
+    if (desc.contains('proyector')) return Icons.tv;
+    if (desc.contains('audio') || desc.contains('micrófono'))
+      return Icons.volume_up;
+    if (desc.contains('router') || desc.contains('switch')) return Icons.router;
+    if (desc.contains('osciloscopio') ||
+        desc.contains('multímetro') ||
+        desc.contains('fuente') ||
+        desc.contains('generador')) return Icons.electrical_services;
+    if (desc.contains('cámara')) return Icons.videocam;
+    if (desc.contains('pantalla')) return Icons.tv;
+    return Icons.devices;
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'available':
+        return 'Disponible';
+      case 'unavailable':
+        return 'No disponible';
+      case 'maintenance':
+        return 'Mantenimiento';
       default:
-        return Icons.devices;
+        return status;
     }
   }
 
   void _saveChanges() {
     final updatedEquipment = Equipment(
       id: widget.equipment.id,
-      nombre: _nombreController.text,
-      tipo: _tipoController.text,
-      estado: _selectedStatus,
-      ultimoMantenimiento: widget.equipment.ultimoMantenimiento,
-      observaciones: _observacionesController.text.isEmpty
+      laboratoryId: widget.equipment.laboratoryId,
+      numEquipment: _numEquipmentController.text,
+      status: _selectedStatus,
+      description: _descriptionController.text.isEmpty
           ? null
-          : _observacionesController.text,
+          : _descriptionController.text,
+      createdAt: widget.equipment.createdAt,
+      updatedAt: DateTime.now(),
     );
 
     widget.onUpdate(updatedEquipment);
@@ -399,9 +373,8 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
 
   @override
   void dispose() {
-    _nombreController.dispose();
-    _tipoController.dispose();
-    _observacionesController.dispose();
+    _numEquipmentController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 }

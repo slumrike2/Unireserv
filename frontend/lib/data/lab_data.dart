@@ -1,99 +1,143 @@
 import '../models/lab_model.dart';
 
 class LabData {
-  static List<Lab> getLabs() {
+  /// Returns a Reservation for a given lab, date, and hour, or null if none exists.
+  static Reservation? getReservationForLab(
+      int labId, String fecha, String hora) {
+    // Datos de prueba para 2 semanas (2025-01-06 a 2025-01-17)
+    // Semana 1: 2025-01-06 (Lun) a 2025-01-10 (Vie)
+    // Semana 2: 2025-01-13 (Lun) a 2025-01-17 (Vie)
+    // Ejemplo: algunos slots reservados total/parcial para lab 1 y lab 2
+    if (labId == 1 && fecha == "2025-01-07" && hora == "09:00") {
+      return Reservation(tipo: "total", equipos: 3, duracion: 1);
+    }
+    if (labId == 1 && fecha == "2025-01-07" && hora == "10:00") {
+      return Reservation(tipo: "parcial", equipos: 1, duracion: 1);
+    }
+    if (labId == 1 && fecha == "2025-01-14" && hora == "11:00") {
+      return Reservation(tipo: "total", equipos: 4, duracion: 1);
+    }
+    if (labId == 2 && fecha == "2025-01-08" && hora == "08:00") {
+      return Reservation(tipo: "parcial", equipos: 1, duracion: 1);
+    }
+    if (labId == 2 && fecha == "2025-01-15" && hora == "10:00") {
+      return Reservation(tipo: "total", equipos: 2, duracion: 1);
+    }
+    // Puedes agregar más casos de prueba aquí
+    return null;
+  }
+
+  static List<Laboratory> getLaboratories() {
     return [
-      Lab(
+      Laboratory(
         id: 1,
-        nombre: "Laboratorio de Computación A",
-        capacidad: 30,
-        equipos: 25,
-        ubicacion: "Piso 2 - Ala Norte",
-        reservas: {
-          "2025-01-06": {
-            "10:00": Reservation(tipo: "total", equipos: 25, duracion: 2),
-            "14:00": Reservation(tipo: "parcial", equipos: 12, duracion: 1),
-          },
-          "2025-01-07": {
-            "08:00": Reservation(tipo: "total", equipos: 25, duracion: 3),
-            "15:00": Reservation(tipo: "parcial", equipos: 8, duracion: 2),
-          },
-          "2025-01-08": {
-            "09:00": Reservation(tipo: "parcial", equipos: 15, duracion: 2),
-            "13:00": Reservation(tipo: "parcial", equipos: 6, duracion: 1),
-            "16:00": Reservation(tipo: "total", equipos: 25, duracion: 2),
-          },
-          "2025-01-09": {
-            "07:00": Reservation(tipo: "parcial", equipos: 4, duracion: 1),
-            "11:00": Reservation(tipo: "total", equipos: 25, duracion: 3),
-          },
-          "2025-01-10": {
-            "08:00": Reservation(tipo: "total", equipos: 25, duracion: 4),
-            "15:00": Reservation(tipo: "parcial", equipos: 10, duracion: 3),
-          },
-        },
+        name: "Laboratorio de Computación A",
+        location: "Piso 2 - Ala Norte",
+        capacity: 30,
+        openTime: "07:00",
+        closeTime: "18:00",
+        isActive: true,
+        createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+        updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
       ),
-      Lab(
+      Laboratory(
         id: 2,
-        nombre: "Laboratorio de Electrónica",
-        capacidad: 20,
-        equipos: 15,
-        ubicacion: "Piso 1 - Ala Sur",
-        reservas: {
-          "2025-01-06": {
-            "09:00": Reservation(tipo: "total", equipos: 15, duracion: 2),
-            "15:00": Reservation(tipo: "parcial", equipos: 8, duracion: 2),
-          },
-          "2025-01-07": {
-            "07:00": Reservation(tipo: "parcial", equipos: 3, duracion: 1),
-            "13:00": Reservation(tipo: "total", equipos: 15, duracion: 3),
-          },
-        },
+        name: "Laboratorio de Electrónica",
+        location: "Piso 1 - Ala Sur",
+        capacity: 20,
+        openTime: "08:00",
+        closeTime: "17:00",
+        isActive: true,
+        createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+        updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
       ),
-      Lab(
+      Laboratory(
         id: 3,
-        nombre: "Sala de Conferencias Premium",
-        capacidad: 50,
-        equipos: 8,
-        ubicacion: "Piso 3 - Centro",
-        reservas: {
-          "2025-01-06": {
-            "11:00": Reservation(tipo: "total", equipos: 8, duracion: 2),
-          },
-          "2025-01-07": {
-            "09:00": Reservation(tipo: "total", equipos: 8, duracion: 4),
-            "16:00": Reservation(tipo: "parcial", equipos: 4, duracion: 2),
-          },
-        },
+        name: "Sala de Conferencias Premium",
+        location: "Piso 3 - Centro",
+        capacity: 50,
+        openTime: "09:00",
+        closeTime: "20:00",
+        isActive: true,
+        createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+        updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
       ),
     ];
   }
 
-  static List<Equipment> getEquipmentForLab(int labId) {
-    switch (labId) {
+  static List<Equipment> getEquipmentForLab(int laboratoryId) {
+    switch (laboratoryId) {
       case 1:
         return [
-          Equipment(id: 1, nombre: "PC-001", tipo: "Computadora", estado: "disponible", ultimoMantenimiento: "2024-12-15"),
-          Equipment(id: 2, nombre: "PC-002", tipo: "Computadora", estado: "ocupado", ultimoMantenimiento: "2024-12-10"),
-          Equipment(id: 3, nombre: "PC-003", tipo: "Computadora", estado: "disponible", ultimoMantenimiento: "2024-12-20"),
-          Equipment(id: 4, nombre: "PC-004", tipo: "Computadora", estado: "dañado", ultimoMantenimiento: "2024-11-30"),
-          Equipment(id: 5, nombre: "PC-005", tipo: "Computadora", estado: "disponible", ultimoMantenimiento: "2024-12-18"),
-          Equipment(id: 11, nombre: "PROJ-001", tipo: "Proyector", estado: "disponible", ultimoMantenimiento: "2024-12-05"),
-          Equipment(id: 12, nombre: "PROJ-002", tipo: "Proyector", estado: "dañado", ultimoMantenimiento: "2024-11-25"),
-          Equipment(id: 13, nombre: "AUDIO-001", tipo: "Sistema Audio", estado: "disponible", ultimoMantenimiento: "2024-12-08"),
+          Equipment(
+            id: 1,
+            laboratoryId: 1,
+            numEquipment: "PC-001",
+            status: "available",
+            description: "Computadora de escritorio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
+          Equipment(
+            id: 2,
+            laboratoryId: 1,
+            numEquipment: "PC-002",
+            status: "unavailable",
+            description: "Computadora de escritorio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
+          Equipment(
+            id: 3,
+            laboratoryId: 1,
+            numEquipment: "PC-003",
+            status: "available",
+            description: "Computadora de escritorio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
+          Equipment(
+            id: 4,
+            laboratoryId: 1,
+            numEquipment: "PC-004",
+            status: "maintenance",
+            description: "Computadora de escritorio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
         ];
       case 2:
         return [
-          Equipment(id: 16, nombre: "ELEC-001", tipo: "Osciloscopio", estado: "disponible", ultimoMantenimiento: "2024-12-10"),
-          Equipment(id: 17, nombre: "ELEC-002", tipo: "Osciloscopio", estado: "ocupado", ultimoMantenimiento: "2024-12-15"),
-          Equipment(id: 18, nombre: "ELEC-003", tipo: "Multímetro", estado: "disponible", ultimoMantenimiento: "2024-12-20"),
-          Equipment(id: 19, nombre: "ELEC-004", tipo: "Multímetro", estado: "dañado", ultimoMantenimiento: "2024-11-28"),
+          Equipment(
+            id: 5,
+            laboratoryId: 2,
+            numEquipment: "ELEC-001",
+            status: "available",
+            description: "Osciloscopio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
+          Equipment(
+            id: 6,
+            laboratoryId: 2,
+            numEquipment: "ELEC-002",
+            status: "unavailable",
+            description: "Osciloscopio",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
         ];
       case 3:
         return [
-          Equipment(id: 24, nombre: "CONF-001", tipo: "Proyector 4K", estado: "disponible", ultimoMantenimiento: "2024-12-15"),
-          Equipment(id: 25, nombre: "CONF-002", tipo: "Sistema Audio", estado: "disponible", ultimoMantenimiento: "2024-12-10"),
-          Equipment(id: 26, nombre: "CONF-003", tipo: "Cámara", estado: "ocupado", ultimoMantenimiento: "2024-12-08"),
+          Equipment(
+            id: 7,
+            laboratoryId: 3,
+            numEquipment: "CONF-001",
+            status: "available",
+            description: "Proyector 4K",
+            createdAt: DateTime.parse("2025-01-01T08:00:00Z"),
+            updatedAt: DateTime.parse("2025-01-01T08:00:00Z"),
+          ),
         ];
       default:
         return [];
@@ -102,18 +146,36 @@ class LabData {
 
   static List<String> getHours() {
     return [
-      "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
-      "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
+      "07:00",
+      "08:00",
+      "09:00",
+      "10:00",
+      "11:00",
+      "12:00",
+      "13:00",
+      "14:00",
+      "15:00",
+      "16:00",
+      "17:00",
+      "18:00"
     ];
   }
 
   static List<Map<String, String>> getWeekDays() {
+    // Devuelve 2 semanas (Lun-Vie)
     return [
+      // Semana 1
       {"nombre": "Lun", "fecha": "2025-01-06"},
       {"nombre": "Mar", "fecha": "2025-01-07"},
       {"nombre": "Mié", "fecha": "2025-01-08"},
       {"nombre": "Jue", "fecha": "2025-01-09"},
       {"nombre": "Vie", "fecha": "2025-01-10"},
+      // Semana 2
+      {"nombre": "Lun", "fecha": "2025-01-13"},
+      {"nombre": "Mar", "fecha": "2025-01-14"},
+      {"nombre": "Mié", "fecha": "2025-01-15"},
+      {"nombre": "Jue", "fecha": "2025-01-16"},
+      {"nombre": "Vie", "fecha": "2025-01-17"},
     ];
   }
 }

@@ -4,7 +4,7 @@ import '../data/lab_data.dart';
 
 class ReservationModal extends StatefulWidget {
   final List<SelectedSlot> selectedSlots;
-  final List<Lab> labs;
+  final List<Laboratory> labs;
   final VoidCallback onReserve;
 
   const ReservationModal({
@@ -44,29 +44,34 @@ class _ReservationModalState extends State<ReservationModal> {
 
   void _selectAllAvailable(String slotKey, List<Equipment> availableEquipment) {
     setState(() {
-      _selectedEquipment[slotKey] = availableEquipment.map((e) => e.id).toList();
+      _selectedEquipment[slotKey] =
+          availableEquipment.map((e) => e.id).toList();
     });
   }
 
   List<Equipment> _getEquipmentForSlot(SelectedSlot slot) {
+    // Adapted to new Equipment model: uses status, numEquipment, description, etc.
     final allEquipment = LabData.getEquipmentForLab(slot.salonId);
-    final lab = widget.labs.firstWhere((l) => l.id == slot.salonId);
-    final reservation = lab.reservas[slot.fecha]?[slot.hora];
-    
+    // Use LabData.getReservationForLab instead of lab.reservas
+    final reservation =
+        LabData.getReservationForLab(slot.salonId, slot.fecha, slot.hora);
+
     if (reservation != null && reservation.tipo == "parcial") {
       // Simulate which equipment is occupied for partial reservations
       final occupiedCount = reservation.equipos;
       for (int i = 0; i < occupiedCount && i < allEquipment.length; i++) {
         allEquipment[i] = Equipment(
           id: allEquipment[i].id,
-          nombre: allEquipment[i].nombre,
-          tipo: allEquipment[i].tipo,
-          estado: 'ocupado',
-          ultimoMantenimiento: allEquipment[i].ultimoMantenimiento,
+          laboratoryId: allEquipment[i].laboratoryId,
+          numEquipment: allEquipment[i].numEquipment,
+          status: 'unavailable',
+          description: allEquipment[i].description,
+          createdAt: allEquipment[i].createdAt,
+          updatedAt: allEquipment[i].updatedAt,
         );
       }
     }
-    
+
     return allEquipment;
   }
 
@@ -147,14 +152,16 @@ class _ReservationModalState extends State<ReservationModal> {
                                   margin: const EdgeInsets.only(bottom: 8),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: const Color(0xFF4B5563)),
+                                    border: Border.all(
+                                        color: const Color(0xFF4B5563)),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Row(
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               slot.salonNombre,
@@ -179,8 +186,10 @@ class _ReservationModalState extends State<ReservationModal> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey),
-                                          borderRadius: BorderRadius.circular(4),
+                                          border:
+                                              Border.all(color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         child: Text(
                                           '${slot.equiposDisponibles} disponibles',
@@ -237,11 +246,18 @@ class _ReservationModalState extends State<ReservationModal> {
 
                     // Equipment selection for each slot
                     ...widget.selectedSlots.map((slot) {
-                      final slotKey = '${slot.salonId}_${slot.fecha}_${slot.hora}';
+                      final slotKey =
+                          '${slot.salonId}_${slot.fecha}_${slot.hora}';
                       final equipment = _getEquipmentForSlot(slot);
-                      final availableEquipment = equipment.where((e) => e.estado == 'disponible').toList();
-                      final occupiedEquipment = equipment.where((e) => e.estado == 'ocupado').toList();
-                      final damagedEquipment = equipment.where((e) => e.estado == 'dañado').toList();
+                      final availableEquipment = equipment
+                          .where((e) => e.status == 'available')
+                          .toList();
+                      final occupiedEquipment = equipment
+                          .where((e) => e.status == 'unavailable')
+                          .toList();
+                      final damagedEquipment = equipment
+                          .where((e) => e.status == 'maintenance')
+                          .toList();
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 20),
@@ -267,11 +283,13 @@ class _ReservationModalState extends State<ReservationModal> {
                                   ),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () => _selectAllAvailable(slotKey, availableEquipment),
+                                  onPressed: () => _selectAllAvailable(
+                                      slotKey, availableEquipment),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
                                   ),
                                   child: Text(
                                     'Reservar Todos (${availableEquipment.length})',
@@ -286,11 +304,14 @@ class _ReservationModalState extends State<ReservationModal> {
                             // Equipment status summary
                             Row(
                               children: [
-                                _buildStatusChip('Disponibles', availableEquipment.length, Colors.green),
+                                _buildStatusChip('Disponibles',
+                                    availableEquipment.length, Colors.green),
                                 const SizedBox(width: 8),
-                                _buildStatusChip('Ocupados', occupiedEquipment.length, Colors.red),
+                                _buildStatusChip('Ocupados',
+                                    occupiedEquipment.length, Colors.red),
                                 const SizedBox(width: 8),
-                                _buildStatusChip('En Mantenimiento', damagedEquipment.length, Colors.yellow),
+                                _buildStatusChip('En Mantenimiento',
+                                    damagedEquipment.length, Colors.yellow),
                               ],
                             ),
 
@@ -300,7 +321,8 @@ class _ReservationModalState extends State<ReservationModal> {
                             GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 6,
                                 crossAxisSpacing: 8,
                                 mainAxisSpacing: 8,
@@ -309,9 +331,12 @@ class _ReservationModalState extends State<ReservationModal> {
                               itemCount: equipment.length,
                               itemBuilder: (context, index) {
                                 final equip = equipment[index];
-                                final isSelected = _selectedEquipment[slotKey]?.contains(equip.id) ?? false;
-                                
-                                return _buildEquipmentCard(equip, isSelected, slotKey);
+                                final isSelected = _selectedEquipment[slotKey]
+                                        ?.contains(equip.id) ??
+                                    false;
+
+                                return _buildEquipmentCard(
+                                    equip, isSelected, slotKey);
                               },
                             ),
                           ],
@@ -384,22 +409,24 @@ class _ReservationModalState extends State<ReservationModal> {
     );
   }
 
-  Widget _buildEquipmentCard(Equipment equipment, bool isSelected, String slotKey) {
+  Widget _buildEquipmentCard(
+      Equipment equipment, bool isSelected, String slotKey) {
     Color backgroundColor;
     Color borderColor;
     bool isClickable = false;
 
-    switch (equipment.estado) {
-      case 'disponible':
-        backgroundColor = isSelected ? Colors.green : Colors.green.withOpacity(0.2);
+    switch (equipment.status) {
+      case 'available':
+        backgroundColor =
+            isSelected ? Colors.green : Colors.green.withOpacity(0.2);
         borderColor = Colors.green;
         isClickable = true;
         break;
-      case 'ocupado':
+      case 'unavailable':
         backgroundColor = Colors.red.withOpacity(0.8);
         borderColor = Colors.red;
         break;
-      case 'dañado':
+      case 'maintenance':
         backgroundColor = Colors.yellow.withOpacity(0.8);
         borderColor = Colors.yellow;
         break;
@@ -409,7 +436,9 @@ class _ReservationModalState extends State<ReservationModal> {
     }
 
     return GestureDetector(
-      onTap: isClickable ? () => _toggleEquipmentSelection(slotKey, equipment.id) : null,
+      onTap: isClickable
+          ? () => _toggleEquipmentSelection(slotKey, equipment.id)
+          : null,
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -423,13 +452,13 @@ class _ReservationModalState extends State<ReservationModal> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _getEquipmentIcon(equipment.tipo),
+              _getEquipmentIcon(equipment.description ?? ''),
               color: Colors.white,
               size: 20,
             ),
             const SizedBox(height: 4),
             Text(
-              equipment.nombre,
+              equipment.numEquipment,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 8,
@@ -438,7 +467,7 @@ class _ReservationModalState extends State<ReservationModal> {
               textAlign: TextAlign.center,
             ),
             Text(
-              equipment.tipo,
+              equipment.description ?? '',
               style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 6,
@@ -447,7 +476,7 @@ class _ReservationModalState extends State<ReservationModal> {
             ),
             const SizedBox(height: 2),
             Text(
-              equipment.estado.toUpperCase(),
+              equipment.status.toUpperCase(),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 6,
@@ -467,30 +496,20 @@ class _ReservationModalState extends State<ReservationModal> {
     );
   }
 
-  IconData _getEquipmentIcon(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'computadora':
-      case 'proyector':
-      case 'proyector 4k':
-        return Icons.computer;
-      case 'sistema audio':
-      case 'micrófono':
-        return Icons.volume_up;
-      case 'router':
-      case 'switch':
-        return Icons.router;
-      case 'osciloscopio':
-      case 'multímetro':
-      case 'fuente de poder':
-      case 'generador':
-        return Icons.electrical_services;
-      case 'cámara':
-        return Icons.videocam;
-      case 'pantalla':
-        return Icons.tv;
-      default:
-        return Icons.devices;
-    }
+  IconData _getEquipmentIcon(String description) {
+    final desc = description.toLowerCase();
+    if (desc.contains('computadora')) return Icons.computer;
+    if (desc.contains('proyector')) return Icons.tv;
+    if (desc.contains('audio') || desc.contains('micrófono'))
+      return Icons.volume_up;
+    if (desc.contains('router') || desc.contains('switch')) return Icons.router;
+    if (desc.contains('osciloscopio') ||
+        desc.contains('multímetro') ||
+        desc.contains('fuente') ||
+        desc.contains('generador')) return Icons.electrical_services;
+    if (desc.contains('cámara')) return Icons.videocam;
+    if (desc.contains('pantalla')) return Icons.tv;
+    return Icons.devices;
   }
 
   void _confirmReservation() {
@@ -506,7 +525,8 @@ class _ReservationModalState extends State<ReservationModal> {
     }
 
     // Check if at least one equipment is selected
-    bool hasSelection = _selectedEquipment.values.any((list) => list.isNotEmpty);
+    bool hasSelection =
+        _selectedEquipment.values.any((list) => list.isNotEmpty);
     if (!hasSelection) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

@@ -15,13 +15,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentWeek = 0;
   List<SelectedSlot> _selectedSlots = [];
-  List<Lab> _labs = [];
+  List<Laboratory> _labs = [];
 
   @override
   void initState() {
     super.initState();
     _checkAuthentication();
-    _labs = LabData.getLabs();
+    _labs = LabData.getLaboratories();
   }
 
   Future<void> _checkAuthentication() async {
@@ -51,18 +51,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _changeWeek(int direction) {
     setState(() {
-      _currentWeek += direction;
+      final newWeek = _currentWeek + direction;
+      if (newWeek >= 0) {
+        _currentWeek = newWeek;
+      }
     });
   }
 
   void _toggleSlotSelection(SelectedSlot slot) {
     setState(() {
       final existingIndex = _selectedSlots.indexWhere(
-        (s) => s.salonId == slot.salonId && 
-               s.fecha == slot.fecha && 
-               s.hora == slot.hora,
+        (s) =>
+            s.salonId == slot.salonId &&
+            s.fecha == slot.fecha &&
+            s.hora == slot.hora,
       );
-      
+
       if (existingIndex != -1) {
         _selectedSlots.removeAt(existingIndex);
       } else {
@@ -95,7 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final weekStart = DateTime(2025, 1, 6).add(Duration(days: _currentWeek * 7));
+    final weekStart =
+        DateTime(2025, 1, 6).add(Duration(days: _currentWeek * 7));
     final weekEnd = weekStart.add(const Duration(days: 4));
 
     return Scaffold(
@@ -168,7 +173,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Week navigator
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B).withOpacity(0.5),
                           borderRadius: BorderRadius.circular(8),
@@ -177,7 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             IconButton(
                               onPressed: () => _changeWeek(-1),
-                              icon: const Icon(Icons.chevron_left, color: Colors.grey),
+                              icon: const Icon(Icons.chevron_left,
+                                  color: Colors.grey),
                             ),
                             Column(
                               children: [
@@ -199,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             IconButton(
                               onPressed: () => _changeWeek(1),
-                              icon: const Icon(Icons.chevron_right, color: Colors.grey),
+                              icon: const Icon(Icons.chevron_right,
+                                  color: Colors.grey),
                             ),
                           ],
                         ),
@@ -289,9 +297,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         runSpacing: 8,
                         children: [
                           _buildLegendItem(Colors.red, 'Reserva Total'),
-                          _buildLegendItem(Colors.yellow, 'Reserva Parcial (Seleccionable)'),
-                          _buildLegendItem(Colors.green.withOpacity(0.3), 'Seleccionado', border: Colors.green),
-                          _buildLegendItem(Colors.transparent, 'Disponible', border: Colors.grey),
+                          _buildLegendItem(
+                              Colors.yellow, 'Reserva Parcial (Seleccionable)'),
+                          _buildLegendItem(
+                              Colors.green.withOpacity(0.3), 'Seleccionado',
+                              border: Colors.green),
+                          _buildLegendItem(Colors.transparent, 'Disponible',
+                              border: Colors.grey),
                         ],
                       ),
                     ),
@@ -299,13 +311,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Lab schedules
                     ...(_labs.map((lab) => Padding(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      child: ScheduleTable(
-                        lab: lab,
-                        selectedSlots: _selectedSlots,
-                        onSlotToggle: _toggleSlotSelection,
-                      ),
-                    ))),
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: ScheduleTable(
+                            lab: lab,
+                            selectedSlots: _selectedSlots,
+                            onSlotToggle: _toggleSlotSelection,
+                            weekIndex: _currentWeek,
+                          ),
+                        ))),
                   ],
                 ),
               ),

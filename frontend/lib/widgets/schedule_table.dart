@@ -3,15 +3,17 @@ import '../models/lab_model.dart';
 import '../data/lab_data.dart';
 
 class ScheduleTable extends StatelessWidget {
-  final Lab lab;
+  final Laboratory lab;
   final List<SelectedSlot> selectedSlots;
   final Function(SelectedSlot) onSlotToggle;
+  final int weekIndex;
 
   const ScheduleTable({
     super.key,
     required this.lab,
     required this.selectedSlots,
     required this.onSlotToggle,
+    required this.weekIndex,
   });
 
   bool _isSlotSelected(String fecha, String hora) {
@@ -23,7 +25,8 @@ class ScheduleTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hours = LabData.getHours();
-    final weekDays = LabData.getWeekDays();
+    final allWeekDays = LabData.getWeekDays();
+    final weekDays = allWeekDays.skip(weekIndex * 5).take(5).toList();
 
     return Card(
       color: const Color(0xFF1E293B).withOpacity(0.5),
@@ -44,7 +47,7 @@ class ScheduleTable extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        lab.nombre,
+                        lab.name,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -62,7 +65,7 @@ class ScheduleTable extends StatelessWidget {
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
-                                '${lab.capacidad} personas',
+                                '${lab.capacity} personas',
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 12),
                               ),
@@ -74,8 +77,9 @@ class ScheduleTable extends StatelessWidget {
                               const Icon(Icons.computer,
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
+                              // No equipos field in Laboratory, so you may want to fetch this from LabData or another source
                               Text(
-                                '${lab.equipos} equipos',
+                                '${LabData.getEquipmentForLab(lab.id).length} equipos',
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 12),
                               ),
@@ -88,7 +92,7 @@ class ScheduleTable extends StatelessWidget {
                                   size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
-                                lab.ubicacion,
+                                lab.location,
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 12),
                               ),
@@ -199,13 +203,16 @@ class ScheduleTable extends StatelessWidget {
                             ),
                           ),
                           ...weekDays.map((day) {
-                            final reservation =
-                                lab.reservas[day['fecha']!]?[hour];
+                            // Laboratory model does not have reservas or equipos fields, so we need to adapt:
+                            final reservation = LabData.getReservationForLab(
+                                lab.id, day['fecha']!, hour);
                             final isSelected =
                                 _isSlotSelected(day['fecha']!, hour);
+                            final totalEquipos =
+                                LabData.getEquipmentForLab(lab.id).length;
                             final equiposDisponibles = reservation != null
-                                ? lab.equipos - reservation.equipos
-                                : lab.equipos;
+                                ? totalEquipos - reservation.equipos
+                                : totalEquipos;
 
                             return DataCell(
                               Container(
@@ -301,7 +308,7 @@ class ScheduleTable extends StatelessWidget {
         return GestureDetector(
           onTap: () => onSlotToggle(SelectedSlot(
             salonId: lab.id,
-            salonNombre: lab.nombre,
+            salonNombre: lab.name,
             fecha: day['fecha']!,
             hora: hour,
             dia: day['nombre']!,
@@ -395,7 +402,7 @@ class ScheduleTable extends StatelessWidget {
       return GestureDetector(
         onTap: () => onSlotToggle(SelectedSlot(
           salonId: lab.id,
-          salonNombre: lab.nombre,
+          salonNombre: lab.name,
           fecha: day['fecha']!,
           hora: hour,
           dia: day['nombre']!,

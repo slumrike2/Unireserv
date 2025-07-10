@@ -16,67 +16,70 @@ class EquipmentCard extends StatelessWidget {
   });
 
   Color get _backgroundColor {
-    switch (equipment.estado) {
-      case 'disponible':
+    switch (equipment.status) {
+      case 'available':
         return Colors.green;
-      case 'ocupado':
+      case 'unavailable':
         return Colors.red.withOpacity(0.8);
-      case 'dañado':
-        return Colors.yellow.withOpacity(0.8);
+      case 'maintenance':
+        return Colors.orange.withOpacity(0.8);
       default:
         return Colors.grey;
     }
   }
 
   Color get _borderColor {
-    switch (equipment.estado) {
-      case 'disponible':
+    switch (equipment.status) {
+      case 'available':
         return Colors.green;
-      case 'ocupado':
+      case 'unavailable':
         return Colors.red;
-      case 'dañado':
-        return Colors.yellow;
+      case 'maintenance':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
   }
 
   IconData get _equipmentIcon {
-    switch (equipment.tipo.toLowerCase()) {
-      case 'computadora':
-      case 'proyector':
-      case 'proyector 4k':
-        return Icons.computer;
-      case 'sistema audio':
-      case 'micrófono':
-        return Icons.volume_up;
-      case 'router':
-      case 'switch':
-        return Icons.router;
-      case 'osciloscopio':
-      case 'multímetro':
-      case 'fuente de poder':
-      case 'generador':
-        return Icons.electrical_services;
-      case 'cámara':
-        return Icons.videocam;
-      case 'pantalla':
-        return Icons.tv;
-      default:
-        return Icons.devices;
-    }
+    final desc = (equipment.description ?? '').toLowerCase();
+    if (desc.contains('computadora')) return Icons.computer;
+    if (desc.contains('proyector')) return Icons.tv;
+    if (desc.contains('audio') || desc.contains('micrófono'))
+      return Icons.volume_up;
+    if (desc.contains('router') || desc.contains('switch')) return Icons.router;
+    if (desc.contains('osciloscopio') ||
+        desc.contains('multímetro') ||
+        desc.contains('fuente') ||
+        desc.contains('generador')) return Icons.electrical_services;
+    if (desc.contains('cámara')) return Icons.videocam;
+    if (desc.contains('pantalla')) return Icons.tv;
+    return Icons.devices;
   }
 
   IconData get _statusIcon {
-    switch (equipment.estado) {
-      case 'disponible':
+    switch (equipment.status) {
+      case 'available':
         return Icons.check_circle;
-      case 'ocupado':
+      case 'unavailable':
         return Icons.cancel;
-      case 'dañado':
-        return Icons.warning;
+      case 'maintenance':
+        return Icons.build;
       default:
         return Icons.help;
+    }
+  }
+
+  String get _statusLabel {
+    switch (equipment.status) {
+      case 'available':
+        return 'Disponible';
+      case 'unavailable':
+        return 'No disponible';
+      case 'maintenance':
+        return 'Mantenimiento';
+      default:
+        return equipment.status;
     }
   }
 
@@ -123,9 +126,9 @@ class EquipmentCard extends StatelessWidget {
 
                     const SizedBox(height: 8),
 
-                    // Equipment name
+                    // Equipment identifier
                     Text(
-                      equipment.nombre,
+                      equipment.numEquipment,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -134,15 +137,16 @@ class EquipmentCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
 
-                    // Equipment type
-                    Text(
-                      equipment.tipo,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
+                    // Equipment description
+                    if (equipment.description != null)
+                      Text(
+                        equipment.description!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
 
                     const SizedBox(height: 8),
 
@@ -157,7 +161,7 @@ class EquipmentCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          equipment.estado.toUpperCase(),
+                          _statusLabel,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -166,18 +170,6 @@ class EquipmentCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    if (isAdmin) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Mant: ${equipment.ultimoMantenimiento}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 8,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -207,14 +199,13 @@ class EquipmentCard extends StatelessWidget {
 
   List<Widget> _buildQuickActions() {
     List<Widget> actions = [];
-
-    switch (equipment.estado) {
-      case 'disponible':
+    switch (equipment.status) {
+      case 'available':
         actions.addAll([
           _buildQuickActionButton(
             Icons.build,
             'maintenance',
-            Colors.yellow,
+            Colors.orange,
           ),
           _buildQuickActionButton(
             Icons.block,
@@ -223,7 +214,7 @@ class EquipmentCard extends StatelessWidget {
           ),
         ]);
         break;
-      case 'ocupado':
+      case 'unavailable':
         actions.add(
           _buildQuickActionButton(
             Icons.check,
@@ -232,7 +223,7 @@ class EquipmentCard extends StatelessWidget {
           ),
         );
         break;
-      case 'dañado':
+      case 'maintenance':
         actions.add(
           _buildQuickActionButton(
             Icons.build_circle,
@@ -242,7 +233,6 @@ class EquipmentCard extends StatelessWidget {
         );
         break;
     }
-
     return actions;
   }
 

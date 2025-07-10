@@ -21,7 +21,7 @@ class EquipmentDetailScreen extends StatefulWidget {
 
 class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
   bool _isAdmin = false;
-  Lab? _lab;
+  Laboratory? _lab;
   List<Equipment> _equipment = [];
   String _searchQuery = '';
   String _filterStatus = 'todos';
@@ -38,19 +38,23 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
 
     setState(() {
       _isAdmin = userType == "admin";
-      _lab = LabData.getLabs().firstWhere((lab) => lab.id == widget.labId);
+      _lab =
+          LabData.getLaboratories().firstWhere((lab) => lab.id == widget.labId);
       _equipment = LabData.getEquipmentForLab(widget.labId);
     });
   }
 
   List<Equipment> get _filteredEquipment {
     return _equipment.where((equipment) {
-      final matchesSearch =
-          equipment.nombre.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              equipment.tipo.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesSearch = equipment.numEquipment
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
+          (equipment.description ?? '')
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
 
       final matchesFilter =
-          _filterStatus == 'todos' || equipment.estado == _filterStatus;
+          _filterStatus == 'todos' || equipment.status == _filterStatus;
 
       return matchesSearch && matchesFilter;
     }).toList();
@@ -85,8 +89,9 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
       );
     }
 
-    final funcionales = _equipment.where((e) => e.estado == 'funcional').length;
-    final danados = _equipment.where((e) => e.estado == 'dañado').length;
+    final disponibles = _equipment.where((e) => e.status == 'available').length;
+    final mantenimiento =
+        _equipment.where((e) => e.status == 'maintenance').length;
 
     return Scaffold(
       body: Container(
@@ -130,7 +135,7 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _lab!.nombre,
+                                  _lab!.name,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -169,8 +174,9 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _buildStatBadge(
-                              '$funcionales Funcionales', Colors.green),
-                          _buildStatBadge('$danados Dañados', Colors.red),
+                              '$disponibles Disponibles', Colors.green),
+                          _buildStatBadge(
+                              '$mantenimiento Mantenimiento', Colors.orange),
                         ],
                       ),
                     ],
@@ -205,11 +211,11 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
                       children: [
                         _buildFilterChip('Todos', 'todos'),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Disponibles', 'disponible'),
+                        _buildFilterChip('Disponibles', 'available'),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Ocupados', 'ocupado'),
+                        _buildFilterChip('No disponibles', 'unavailable'),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Mantenimiento', 'dañado'),
+                        _buildFilterChip('Mantenimiento', 'maintenance'),
                       ],
                     ),
                   ),
@@ -223,9 +229,9 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: EquipmentStats(
                   total: _equipment.length,
-                  disponibles: funcionales,
+                  disponibles: disponibles,
                   ocupados: 0,
-                  danados: danados,
+                  danados: mantenimiento,
                 ),
               ),
 
@@ -289,9 +295,9 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
                   _buildLegendItem(
                       Colors.green,
                       _isAdmin
-                          ? 'Funcional'
-                          : 'Funcional - Clic para reservar'),
-                  _buildLegendItem(Colors.red, 'Dañado'),
+                          ? 'Disponible'
+                          : 'Disponible - Clic para reservar'),
+                  _buildLegendItem(Colors.orange, 'Mantenimiento'),
                 ],
               ),
             ),
@@ -392,19 +398,19 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
     setState(() {
       final index = _equipment.indexWhere((e) => e.id == equipment.id);
       if (index != -1) {
-        String newStatus;
+        String newStatus = equipment.status;
         switch (action) {
           case 'repair':
-            newStatus = 'funcional';
+            newStatus = 'available';
             break;
           case 'maintenance':
-            newStatus = 'dañado';
+            newStatus = 'maintenance';
             break;
           case 'occupy':
-            newStatus = 'funcional';
+            newStatus = 'unavailable';
             break;
           case 'free':
-            newStatus = 'funcional';
+            newStatus = 'available';
             break;
           default:
             return;
@@ -412,18 +418,20 @@ class _EquipmentDetailScreenState extends State<EquipmentDetailScreen> {
 
         _equipment[index] = Equipment(
           id: equipment.id,
-          nombre: equipment.nombre,
-          tipo: equipment.tipo,
-          estado: newStatus,
-          ultimoMantenimiento: equipment.ultimoMantenimiento,
-          observaciones: equipment.observaciones,
+          laboratoryId: equipment.laboratoryId,
+          numEquipment: equipment.numEquipment,
+          status: newStatus,
+          description: equipment.description,
+          createdAt: equipment.createdAt,
+          updatedAt: DateTime.now(),
         );
       }
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Estado del equipo ${equipment.nombre} actualizado'),
+        content:
+            Text('Estado del equipo ${equipment.numEquipment} actualizado'),
         backgroundColor: Colors.green,
       ),
     );
