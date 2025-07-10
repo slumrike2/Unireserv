@@ -24,223 +24,256 @@ class ScheduleTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hours = LabData.getHours();
-    final allWeekDays = LabData.getWeekDays();
-    final weekDays = allWeekDays.skip(weekIndex * 5).take(5).toList();
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        LabData.fetchHours(),
+        LabData.fetchWeekDays(),
+        LabData.fetchEquipmentForLab(lab.id),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: \\${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text('No data available'));
+        }
 
-    return Card(
-      color: const Color(0xFF1E293B).withOpacity(0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFF334155)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        lab.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 16,
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.people,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${lab.capacity} personas',
-                                style: const TextStyle(
-                                    color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.computer,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              // No equipos field in Laboratory, so you may want to fetch this from LabData or another source
-                              Text(
-                                '${LabData.getEquipmentForLab(lab.id).length} equipos',
-                                style: const TextStyle(
-                                    color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.location_on,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                lab.location,
-                                style: const TextStyle(
-                                    color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/equipment/${lab.id}');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFDC2626),
-                    side: const BorderSide(color: Color(0xFFDC2626)),
-                  ),
-                  child: const Text('Ver Equipos'),
-                ),
-              ],
-            ),
+        final hours = snapshot.data![0] as List<String>;
+        final allWeekDays = snapshot.data![1] as List<Map<String, String>>;
+        final equipmentList = snapshot.data![2] as List<Equipment>;
+        final weekDays = allWeekDays.skip(weekIndex * 5).take(5).toList();
+        final totalEquipos = equipmentList.length;
+
+        return Card(
+          color: const Color(0xFF1E293B).withOpacity(0.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Color(0xFF334155)),
           ),
-
-          // Schedule table - Centered and larger
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  constraints: BoxConstraints(
-                    minWidth: MediaQuery.of(context).size.width - 64,
-                  ),
-                  child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(
-                      const Color(0xFF1E293B).withOpacity(0.5),
-                    ),
-                    headingRowHeight: 60, // Increased height
-                    dataRowHeight: 80, // Increased height
-                    columnSpacing: 20, // More spacing between columns
-                    columns: [
-                      const DataColumn(
-                        label: SizedBox(
-                          width: 60,
-                          child: Text(
-                            'Hora',
-                            style: TextStyle(
-                              color: Colors.grey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lab.name,
+                            style: const TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              color: Colors.white,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ),
-                      ...weekDays.map((day) => DataColumn(
-                            label: SizedBox(
-                              width: 140, // Fixed width for consistency
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 16,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  const Icon(Icons.people,
+                                      size: 16, color: Colors.grey),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    day['nombre']!,
+                                    '${lab.capacity} personas',
                                     style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${DateTime.parse(day['fecha']!).day}/01',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10,
-                                    ),
+                                        color: Colors.grey, fontSize: 12),
                                   ),
                                 ],
                               ),
-                            ),
-                          )),
-                    ],
-                    rows: hours.map((hour) {
-                      return DataRow(
-                        cells: [
-                          DataCell(
-                            Container(
-                              width: 60,
-                              height: 70,
-                              alignment: Alignment.center,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1E293B),
-                                border: Border(
-                                  right: BorderSide(color: Color(0xFF334155)),
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.computer,
+                                      size: 16, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  // No equipos field in Laboratory, so you may want to fetch this from LabData or another source
+                                  Text(
+                                    '$totalEquipos equipos',
+                                    style: const TextStyle(
+                                        color: Colors.grey, fontSize: 12),
+                                  ),
+                                ],
                               ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.location_on,
+                                      size: 16, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    lab.location,
+                                    style: const TextStyle(
+                                        color: Colors.grey, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/equipment/${lab.id}');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFDC2626),
+                        side: const BorderSide(color: Color(0xFFDC2626)),
+                      ),
+                      child: const Text('Ver Equipos'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Schedule table - Centered and larger
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        minWidth: MediaQuery.of(context).size.width - 64,
+                      ),
+                      child: DataTable(
+                        headingRowColor: MaterialStateProperty.all(
+                          const Color(0xFF1E293B).withOpacity(0.5),
+                        ),
+                        headingRowHeight: 60, // Increased height
+                        dataRowHeight: 80, // Increased height
+                        columnSpacing: 20, // More spacing between columns
+                        columns: [
+                          const DataColumn(
+                            label: SizedBox(
+                              width: 60,
                               child: Text(
-                                hour,
-                                style: const TextStyle(
+                                'Hora',
+                                style: TextStyle(
                                   color: Colors.grey,
-                                  fontFamily: 'monospace',
-                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ),
                           ),
-                          ...weekDays.map((day) {
-                            // Laboratory model does not have reservas or equipos fields, so we need to adapt:
-                            final reservation = LabData.getReservationForLab(
-                                lab.id, day['fecha']!, hour);
-                            final isSelected =
-                                _isSlotSelected(day['fecha']!, hour);
-                            final totalEquipos =
-                                LabData.getEquipmentForLab(lab.id).length;
-                            final equiposDisponibles = reservation != null
-                                ? totalEquipos - reservation.equipos
-                                : totalEquipos;
-
-                            return DataCell(
-                              Container(
-                                width: 143, // +3 px
-                                height: 73, // +3 px
-                                margin: const EdgeInsets.all(4),
-                                child: _buildScheduleCell(
-                                  reservation,
-                                  isSelected,
-                                  equiposDisponibles,
-                                  day,
-                                  hour,
+                          ...weekDays.map((day) => DataColumn(
+                                label: SizedBox(
+                                  width: 140, // Fixed width for consistency
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        day['nombre']!,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${DateTime.parse(day['fecha']!).day}/01',
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ],
+                        rows: hours.map((hour) {
+                          return DataRow(
+                            cells: [
+                              DataCell(
+                                Container(
+                                  width: 60,
+                                  height: 70,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF1E293B),
+                                    border: Border(
+                                      right:
+                                          BorderSide(color: Color(0xFF334155)),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    hour,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontFamily: 'monospace',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            );
-                          }),
-                        ],
-                      );
-                    }).toList(),
+                              ...weekDays.map((day) {
+                                final isSelected =
+                                    _isSlotSelected(day['fecha']!, hour);
+                                return DataCell(
+                                  FutureBuilder<Reservation?>(
+                                    future: LabData.fetchReservationForLab(
+                                        lab.id, day['fecha']!, hour),
+                                    builder: (context, reservationSnapshot) {
+                                      if (reservationSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Center(
+                                            child: SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2)));
+                                      }
+                                      final reservation =
+                                          reservationSnapshot.data;
+                                      final equiposDisponibles = reservation !=
+                                              null
+                                          ? totalEquipos - reservation.equipos
+                                          : totalEquipos;
+                                      return Container(
+                                        width: 143, // +3 px
+                                        height: 73, // +3 px
+                                        margin: const EdgeInsets.all(4),
+                                        child: _buildScheduleCell(
+                                          reservation,
+                                          isSelected,
+                                          equiposDisponibles,
+                                          day,
+                                          hour,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              }),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 16),
-        ],
-      ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 

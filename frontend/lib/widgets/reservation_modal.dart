@@ -49,13 +49,10 @@ class _ReservationModalState extends State<ReservationModal> {
     });
   }
 
-  List<Equipment> _getEquipmentForSlot(SelectedSlot slot) {
-    // Adapted to new Equipment model: uses status, numEquipment, description, etc.
-    final allEquipment = LabData.getEquipmentForLab(slot.salonId);
-    // Use LabData.getReservationForLab instead of lab.reservas
-    final reservation =
-        LabData.getReservationForLab(slot.salonId, slot.fecha, slot.hora);
-
+  Future<List<Equipment>> _fetchEquipmentForSlot(SelectedSlot slot) async {
+    final allEquipment = await LabData.fetchEquipmentForLab(slot.salonId);
+    final reservation = await LabData.fetchReservationForLab(
+        slot.salonId, slot.fecha, slot.hora);
     if (reservation != null && reservation.tipo == "parcial") {
       // Simulate which equipment is occupied for partial reservations
       final occupiedCount = reservation.equipos;
@@ -71,7 +68,6 @@ class _ReservationModalState extends State<ReservationModal> {
         );
       }
     }
-
     return allEquipment;
   }
 
@@ -248,99 +244,120 @@ class _ReservationModalState extends State<ReservationModal> {
                     ...widget.selectedSlots.map((slot) {
                       final slotKey =
                           '${slot.salonId}_${slot.fecha}_${slot.hora}';
-                      final equipment = _getEquipmentForSlot(slot);
-                      final availableEquipment = equipment
-                          .where((e) => e.status == 'available')
-                          .toList();
-                      final occupiedEquipment = equipment
-                          .where((e) => e.status == 'unavailable')
-                          .toList();
-                      final damagedEquipment = equipment
-                          .where((e) => e.status == 'maintenance')
-                          .toList();
+                      return FutureBuilder<List<Equipment>>(
+                        future: _fetchEquipmentForSlot(slot),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 32),
+                              child: CircularProgressIndicator(),
+                            ));
+                          } else if (snapshot.hasError) {
+                            return Center(
+                                child: Text('Error al cargar equipos'));
+                          } else if (!snapshot.hasData) {
+                            return const SizedBox();
+                          }
+                          final equipment = snapshot.data!;
+                          final availableEquipment = equipment
+                              .where((e) => e.status == 'available')
+                              .toList();
+                          final occupiedEquipment = equipment
+                              .where((e) => e.status == 'unavailable')
+                              .toList();
+                          final damagedEquipment = equipment
+                              .where((e) => e.status == 'maintenance')
+                              .toList();
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 20),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFF4B5563)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Slot header
-                            Row(
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border:
+                                  Border.all(color: const Color(0xFF4B5563)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    '${slot.salonNombre} - ${slot.dia} ${slot.hora}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                // Slot header
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${slot.salonNombre} - ${slot.dia} ${slot.hora}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    ElevatedButton(
+                                      onPressed: () => _selectAllAvailable(
+                                          slotKey, availableEquipment),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                      ),
+                                      child: Text(
+                                        'Reservar Todos (${availableEquipment.length})',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                ElevatedButton(
-                                  onPressed: () => _selectAllAvailable(
-                                      slotKey, availableEquipment),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 8),
+
+                                const SizedBox(height: 16),
+
+                                // Equipment status summary
+                                Row(
+                                  children: [
+                                    _buildStatusChip(
+                                        'Disponibles',
+                                        availableEquipment.length,
+                                        Colors.green),
+                                    const SizedBox(width: 8),
+                                    _buildStatusChip('Ocupados',
+                                        occupiedEquipment.length, Colors.red),
+                                    const SizedBox(width: 8),
+                                    _buildStatusChip('En Mantenimiento',
+                                        damagedEquipment.length, Colors.yellow),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Equipment grid
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 6,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                    childAspectRatio: 0.8,
                                   ),
-                                  child: Text(
-                                    'Reservar Todos (${availableEquipment.length})',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
+                                  itemCount: equipment.length,
+                                  itemBuilder: (context, index) {
+                                    final equip = equipment[index];
+                                    final isSelected =
+                                        _selectedEquipment[slotKey]
+                                                ?.contains(equip.id) ??
+                                            false;
+                                    return _buildEquipmentCard(
+                                        equip, isSelected, slotKey);
+                                  },
                                 ),
                               ],
                             ),
-
-                            const SizedBox(height: 16),
-
-                            // Equipment status summary
-                            Row(
-                              children: [
-                                _buildStatusChip('Disponibles',
-                                    availableEquipment.length, Colors.green),
-                                const SizedBox(width: 8),
-                                _buildStatusChip('Ocupados',
-                                    occupiedEquipment.length, Colors.red),
-                                const SizedBox(width: 8),
-                                _buildStatusChip('En Mantenimiento',
-                                    damagedEquipment.length, Colors.yellow),
-                              ],
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Equipment grid
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 6,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                childAspectRatio: 0.8,
-                              ),
-                              itemCount: equipment.length,
-                              itemBuilder: (context, index) {
-                                final equip = equipment[index];
-                                final isSelected = _selectedEquipment[slotKey]
-                                        ?.contains(equip.id) ??
-                                    false;
-
-                                return _buildEquipmentCard(
-                                    equip, isSelected, slotKey);
-                              },
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       );
                     }),
                   ],

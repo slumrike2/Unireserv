@@ -178,4 +178,35 @@ class LabData {
       {"nombre": "Vie", "fecha": "2025-01-17"},
     ];
   }
+
+  /// Simula un fetch asíncrono para obtener una reserva
+  static Future<Reservation?> fetchReservationForLab(
+      int labId, String fecha, String hora) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return getReservationForLab(labId, fecha, hora);
+  }
+
+  /// Simula un fetch asíncrono para obtener laboratorios
+  static Future<List<Laboratory>> fetchLaboratories() async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return getLaboratories();
+  }
+
+  /// Simula un fetch asíncrono para obtener equipos de un laboratorio
+  static Future<List<Equipment>> fetchEquipmentForLab(int laboratoryId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return getEquipmentForLab(laboratoryId);
+  }
+
+  /// Simula un fetch asíncrono para obtener los días de la semana
+  static Future<List<Map<String, String>>> fetchWeekDays() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    return getWeekDays();
+  }
+
+  /// Simula un fetch asíncrono para obtener las horas
+  static Future<List<String>> fetchHours() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    return getHours();
+  }
 }
