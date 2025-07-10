@@ -58,33 +58,39 @@ class ScheduleTable extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.people, size: 16, color: Colors.grey),
+                              const Icon(Icons.people,
+                                  size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
                                 '${lab.capacidad} personas',
-                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12),
                               ),
                             ],
                           ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.computer, size: 16, color: Colors.grey),
+                              const Icon(Icons.computer,
+                                  size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
                                 '${lab.equipos} equipos',
-                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12),
                               ),
                             ],
                           ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                              const Icon(Icons.location_on,
+                                  size: 16, color: Colors.grey),
                               const SizedBox(width: 4),
                               Text(
                                 lab.ubicacion,
-                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                style: const TextStyle(
+                                    color: Colors.grey, fontSize: 12),
                               ),
                             ],
                           ),
@@ -132,7 +138,7 @@ class ScheduleTable extends StatelessWidget {
                           child: Text(
                             'Hora',
                             style: TextStyle(
-                              color: Colors.grey, 
+                              color: Colors.grey,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -141,31 +147,31 @@ class ScheduleTable extends StatelessWidget {
                         ),
                       ),
                       ...weekDays.map((day) => DataColumn(
-                        label: SizedBox(
-                          width: 140, // Fixed width for consistency
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                day['nombre']!,
-                                style: const TextStyle(
-                                  color: Colors.grey, 
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
+                            label: SizedBox(
+                              width: 140, // Fixed width for consistency
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    day['nombre']!,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${DateTime.parse(day['fecha']!).day}/01',
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${DateTime.parse(day['fecha']!).day}/01',
-                                style: const TextStyle(
-                                  color: Colors.grey, 
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )),
+                            ),
+                          )),
                     ],
                     rows: hours.map((hour) {
                       return DataRow(
@@ -193,16 +199,18 @@ class ScheduleTable extends StatelessWidget {
                             ),
                           ),
                           ...weekDays.map((day) {
-                            final reservation = lab.reservas[day['fecha']!]?[hour];
-                            final isSelected = _isSlotSelected(day['fecha']!, hour);
-                            final equiposDisponibles = reservation != null 
-                                ? lab.equipos - reservation.equipos 
+                            final reservation =
+                                lab.reservas[day['fecha']!]?[hour];
+                            final isSelected =
+                                _isSlotSelected(day['fecha']!, hour);
+                            final equiposDisponibles = reservation != null
+                                ? lab.equipos - reservation.equipos
                                 : lab.equipos;
 
                             return DataCell(
                               Container(
-                                width: 140,
-                                height: 70,
+                                width: 143, // +3 px
+                                height: 73, // +3 px
                                 margin: const EdgeInsets.all(4),
                                 child: _buildScheduleCell(
                                   reservation,
@@ -222,7 +230,7 @@ class ScheduleTable extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
         ],
       ),
@@ -302,11 +310,12 @@ class ScheduleTable extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               color: Colors.yellow.shade700,
-              border: isSelected ? Border.all(color: Colors.green, width: 3) : null,
+              border:
+                  isSelected ? Border.all(color: Colors.green, width: 3) : null,
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: isSelected 
+                  color: isSelected
                       ? Colors.green.withOpacity(0.3)
                       : Colors.yellow.withOpacity(0.3),
                   blurRadius: 4,
@@ -332,7 +341,7 @@ class ScheduleTable extends StatelessWidget {
                     fontSize: 9,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   '$equiposDisponibles libres',
                   style: const TextStyle(
@@ -344,13 +353,14 @@ class ScheduleTable extends StatelessWidget {
                 const SizedBox(height: 4),
                 if (isSelected)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
-                      '✓ SELECCIONADO',
+                      'SELECCIONADO',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 7,
@@ -360,7 +370,8 @@ class ScheduleTable extends StatelessWidget {
                   )
                 else
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
@@ -391,26 +402,32 @@ class ScheduleTable extends StatelessWidget {
           equiposDisponibles: equiposDisponibles,
         )),
         child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 73,
+            maxHeight: 73,
+          ),
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected ? Colors.green : Colors.grey.withOpacity(0.5),
               width: isSelected ? 3 : 1,
               style: BorderStyle.solid,
             ),
-            color: isSelected 
-                ? Colors.green.withOpacity(0.2) 
-                : Colors.transparent,
+            color:
+                isSelected ? Colors.green.withOpacity(0.2) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: Colors.green.withOpacity(0.3),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ] : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 isSelected ? Icons.check_circle : Icons.add_circle_outline,
@@ -418,19 +435,29 @@ class ScheduleTable extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(height: 4),
-              Text(
-                isSelected ? 'Seleccionado' : 'Disponible',
-                style: TextStyle(
-                  color: isSelected ? Colors.green : Colors.grey,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              Flexible(
+                child: Text(
+                  isSelected ? 'Seleccionado' : 'Disponible',
+                  style: TextStyle(
+                    color: isSelected ? Colors.green : Colors.grey,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
-              Text(
-                '$equiposDisponibles equipos',
-                style: TextStyle(
-                  color: isSelected ? Colors.green : Colors.grey,
-                  fontSize: 8,
+              Flexible(
+                child: Text(
+                  '$equiposDisponibles equipos',
+                  style: TextStyle(
+                    color: isSelected ? Colors.green : Colors.grey,
+                    fontSize: 8,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],

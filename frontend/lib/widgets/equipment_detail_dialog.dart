@@ -29,7 +29,8 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
     super.initState();
     _nombreController = TextEditingController(text: widget.equipment.nombre);
     _tipoController = TextEditingController(text: widget.equipment.tipo);
-    _observacionesController = TextEditingController(text: widget.equipment.observaciones ?? '');
+    _observacionesController =
+        TextEditingController(text: widget.equipment.observaciones ?? '');
     _selectedStatus = widget.equipment.estado;
   }
 
@@ -111,10 +112,13 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                   children: [
                     // Status badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(widget.equipment.estado).withOpacity(0.2),
-                        border: Border.all(color: _getStatusColor(widget.equipment.estado)),
+                        color: _getStatusColor(widget.equipment.estado)
+                            .withOpacity(0.2),
+                        border: Border.all(
+                            color: _getStatusColor(widget.equipment.estado)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -146,7 +150,7 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                       const SizedBox(height: 16),
                       _buildEditField('Tipo de Equipo', _tipoController),
                       const SizedBox(height: 16),
-                      
+
                       // Status dropdown
                       const Text(
                         'Estado',
@@ -155,44 +159,65 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _selectedStatus,
-                        onChanged: (value) => setState(() => _selectedStatus = value!),
+                        onChanged: (value) =>
+                            setState(() => _selectedStatus = value!),
                         dropdownColor: const Color(0xFF374151),
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'disponible', child: Text('Disponible', style: TextStyle(color: Colors.white))),
-                          DropdownMenuItem(value: 'ocupado', child: Text('Ocupado', style: TextStyle(color: Colors.white))),
-                          DropdownMenuItem(value: 'dañado', child: Text('En Mantenimiento', style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'disponible',
+                              child: Text('Disponible',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'ocupado',
+                              child: Text('Ocupado',
+                                  style: TextStyle(color: Colors.white))),
+                          DropdownMenuItem(
+                              value: 'dañado',
+                              child: Text('Dañado',
+                                  style: TextStyle(color: Colors.white))),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      _buildEditField('Observaciones', _observacionesController, maxLines: 3),
+                      _buildEditField('Observaciones', _observacionesController,
+                          maxLines: 3),
                     ] else ...[
                       // View mode
                       _buildInfoRow('ID', widget.equipment.id.toString()),
                       _buildInfoRow('Nombre', widget.equipment.nombre),
                       _buildInfoRow('Tipo', widget.equipment.tipo),
                       _buildInfoRow('Estado', widget.equipment.estado),
-                      _buildInfoRow('Último Mantenimiento', widget.equipment.ultimoMantenimiento),
+                      _buildInfoRow('Último Mantenimiento',
+                          widget.equipment.ultimoMantenimiento),
                       if (widget.equipment.observaciones?.isNotEmpty == true)
-                        _buildInfoRow('Observaciones', widget.equipment.observaciones!),
-                      
+                        _buildInfoRow(
+                            'Observaciones', widget.equipment.observaciones!),
+
                       // Operational status
                       const SizedBox(height: 16),
                       Row(
                         children: [
                           Icon(
-                            widget.equipment.isOperational ? Icons.check_circle : Icons.error,
-                            color: widget.equipment.isOperational ? Colors.green : Colors.red,
+                            widget.equipment.isOperational
+                                ? Icons.check_circle
+                                : Icons.error,
+                            color: widget.equipment.isOperational
+                                ? Colors.green
+                                : Colors.red,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            widget.equipment.isOperational ? 'Operacional' : 'No Operacional',
+                            widget.equipment.isOperational
+                                ? 'Operacional'
+                                : 'No Operacional',
                             style: TextStyle(
-                              color: widget.equipment.isOperational ? Colors.green : Colors.red,
+                              color: widget.equipment.isOperational
+                                  ? Colors.green
+                                  : Colors.red,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -247,7 +272,8 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
     );
   }
 
-  Widget _buildEditField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildEditField(String label, TextEditingController controller,
+      {int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -354,11 +380,13 @@ class _EquipmentDetailDialogState extends State<EquipmentDetailDialog> {
       tipo: _tipoController.text,
       estado: _selectedStatus,
       ultimoMantenimiento: widget.equipment.ultimoMantenimiento,
-      observaciones: _observacionesController.text.isEmpty ? null : _observacionesController.text,
+      observaciones: _observacionesController.text.isEmpty
+          ? null
+          : _observacionesController.text,
     );
 
     widget.onUpdate(updatedEquipment);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Equipo actualizado exitosamente'),
