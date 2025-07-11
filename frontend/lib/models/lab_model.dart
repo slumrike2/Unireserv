@@ -20,6 +20,20 @@ class Laboratory {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  factory Laboratory.fromJson(Map<String, dynamic> json) {
+    return Laboratory(
+      id: json['id'],
+      name: json['name'],
+      location: json['location'],
+      capacity: json['capacity'],
+      openTime: json['openTime'],
+      closeTime: json['closeTime'],
+      isActive: json['isActive'],
+      createdAt: DateTime.parse(json['createdAt']),
+      updatedAt: DateTime.parse(json['updatedAt']),
+    );
+  }
 }
 
 class Reservation {
@@ -32,6 +46,14 @@ class Reservation {
     required this.equipos,
     required this.duracion,
   });
+
+  factory Reservation.fromJson(Map<String, dynamic> json) {
+    return Reservation(
+      tipo: json['tipo'] ?? '',
+      equipos: json['equipos'] ?? 0,
+      duracion: json['duracion'] ?? 0,
+    );
+  }
 }
 
 class Equipment {
@@ -52,6 +74,18 @@ class Equipment {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  factory Equipment.fromJson(Map<String, dynamic> json) {
+    return Equipment(
+      id: json['id'],
+      laboratoryId: json['laboratory_id'],
+      numEquipment: json['num_equipment'],
+      status: json['status'],
+      description: json['description'],
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
+  }
 }
 
 class SelectedSlot {
