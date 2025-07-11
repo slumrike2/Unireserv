@@ -17,7 +17,6 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  bool _isAuthenticated = false;
 
   @override
   void initState() {
@@ -36,15 +35,6 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (!_isAuthenticated) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0F172A),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFDC2626)),
-        ),
-      );
-    }
-
     final adminStats = AdminData.getAdminStats();
     final todayReservations = AdminData.getTodayReservations();
     final equipmentStatus = AdminData.getEquipmentStatus();

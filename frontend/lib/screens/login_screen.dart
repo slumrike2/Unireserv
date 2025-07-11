@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,25 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String _error = '';
-
-  Future<void> _fetchUsers(String accessToken) async {
-    try {
-      final response = await http.get(
-        Uri.parse('${dotenv.env['AUTH_SERVICE_URL']}/users?skip=0&limit=100'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print('Users fetched successfully: ${response.body}');
-      } else {
-        print('Failed to fetch users: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching users: $e');
-    }
-  }
+  final AuthService _authService = AuthService();
 
   Future<void> _login() async {
     setState(() {
@@ -63,10 +46,16 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setBool("isAuthenticated", true);
         await prefs.setString("userName", email);
 
-        await _fetchUsers(accessToken);
+        // Obtener información del usuario actual
+        final currentUser = await _authService.fetchCurrentUser(accessToken);
+        final userRole = currentUser['rol'];
 
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
+          if (userRole == 'admin') {
+            Navigator.pushReplacementNamed(context, '/admin');
+          } else {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
       } else {
         setState(() {

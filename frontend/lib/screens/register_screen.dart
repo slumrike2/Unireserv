@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _departmentController = TextEditingController();
   bool _isLoading = false;
   String _error = '';
+  final AuthService _authService = AuthService();
 
   Future<void> _register() async {
     setState(() {
@@ -24,36 +26,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _error = '';
     });
 
-    // Simulate registration delay
-    await Future.delayed(const Duration(seconds: 1));
-
     final name = _nameController.text;
     final email = _emailController.text;
-    final role = _selectedRole;
+    final role = _selectedRole == 'Alumno' ? 'student' : 'teacher';
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
     final career = _careerController.text;
     final department = _departmentController.text;
-    final passwordSalt = DateTime.now()
-        .millisecondsSinceEpoch
-        .toString(); // Generate password salt programmatically
 
     if (password != confirmPassword) {
       setState(() {
         _error = "Las contraseñas no coinciden";
+        _isLoading = false;
       });
-    } else {
-      // Simulate successful registration
+      return;
+    }
+
+    final userData = {
+      'name': name,
+      'email': email,
+      'password': password,
+      'rol': role,
+      'career': career.isNotEmpty ? career : null,
+      'department': department.isNotEmpty ? department : null,
+    };
+
+    try {
+      final result = await _authService.registerUser(userData);
       if (mounted) {
-        print('User Registered:');
-        print('Name: $name');
-        print('Email: $email');
-        print('Role: $role');
-        print('Career: $career');
-        print('Department: $department');
-        print('Password Salt: $passwordSalt');
         Navigator.pushReplacementNamed(context, '/login');
       }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
     }
 
     setState(() {
