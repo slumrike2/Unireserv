@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +17,25 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String _error = '';
 
+  Future<void> _fetchUsers(String accessToken) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${dotenv.env['AUTH_SERVICE_URL']}/users?skip=0&limit=100'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('Users fetched successfully: ${response.body}');
+      } else {
+        print('Failed to fetch users: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching users: $e');
+    }
+  }
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -26,8 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-            'https://associations-peas-ray-developed.trycloudflare.com/token'),
+        Uri.parse('${dotenv.env['AUTH_SERVICE_URL']}/token'),
         body: {
           'username': email,
           'password': password,
@@ -35,9 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+        final accessToken = responseBody['access_token'];
+        print('Access Token: $accessToken');
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool("isAuthenticated", true);
         await prefs.setString("userName", email);
+
+        await _fetchUsers(accessToken);
 
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
