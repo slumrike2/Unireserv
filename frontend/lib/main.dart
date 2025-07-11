@@ -4,6 +4,7 @@ import 'screens/home_screen.dart';
 import 'screens/admin_screen.dart';
 import 'screens/equipment_detail_screen.dart';
 import 'screens/admin_equipment_screen.dart';
+import 'screens/register_screen.dart';
 import 'utils/theme.dart';
 
 void main() {
@@ -16,13 +17,14 @@ class LabBookingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LabBooking',
+      title: 'Unireserv',
       theme: AppTheme.darkTheme,
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
         '/admin': (context) => const AdminScreen(),
+        '/register': (context) => const RegisterScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name?.startsWith('/equipment/') == true) {

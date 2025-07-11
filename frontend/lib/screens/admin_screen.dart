@@ -14,7 +14,8 @@ class AdminScreen extends StatefulWidget {
   State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin {
+class _AdminScreenState extends State<AdminScreen>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   bool _isAuthenticated = false;
 
@@ -22,23 +23,6 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _checkAuthentication();
-  }
-
-  Future<void> _checkAuthentication() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isAuthenticated = prefs.getBool("isAuthenticated") ?? false;
-    final userType = prefs.getString("userType");
-
-    if (!isAuthenticated || userType != "admin") {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    } else {
-      setState(() {
-        _isAuthenticated = true;
-      });
-    }
   }
 
   Future<void> _logout() async {
@@ -230,7 +214,8 @@ class _AdminScreenState extends State<AdminScreen> with TickerProviderStateMixin
                             child: TabBarView(
                               controller: _tabController,
                               children: [
-                                ReservationsTab(reservations: todayReservations),
+                                ReservationsTab(
+                                    reservations: todayReservations),
                                 EquipmentTab(equipmentStatus: equipmentStatus),
                                 const ReportsTab(),
                               ],

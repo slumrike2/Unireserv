@@ -1,57 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _usernameController = TextEditingController();
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  String _selectedRole = 'Profesor'; // Default role
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _careerController = TextEditingController();
+  final _departmentController = TextEditingController();
   bool _isLoading = false;
   String _error = '';
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     setState(() {
       _isLoading = true;
       _error = '';
     });
 
-    final email = _usernameController.text;
+    // Simulate registration delay
+    await Future.delayed(const Duration(seconds: 1));
+
+    final name = _nameController.text;
+    final email = _emailController.text;
+    final role = _selectedRole;
     final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    final career = _careerController.text;
+    final department = _departmentController.text;
+    final passwordSalt = DateTime.now()
+        .millisecondsSinceEpoch
+        .toString(); // Generate password salt programmatically
 
-    try {
-      final response = await http.post(
-        Uri.parse(
-            'https://associations-peas-ray-developed.trycloudflare.com/token'),
-        body: {
-          'username': email,
-          'password': password,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool("isAuthenticated", true);
-        await prefs.setString("userName", email);
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      } else {
-        setState(() {
-          _error = "Credenciales inválidas";
-        });
-      }
-    } catch (e) {
+    if (password != confirmPassword) {
       setState(() {
-        _error = "Error de conexión";
-        print("Error during login: $e");
+        _error = "Las contraseñas no coinciden";
       });
+    } else {
+      // Simulate successful registration
+      if (mounted) {
+        print('User Registered:');
+        print('Name: $name');
+        print('Email: $email');
+        print('Role: $role');
+        print('Career: $career');
+        print('Department: $department');
+        print('Password Salt: $passwordSalt');
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     }
 
     setState(() {
@@ -100,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Icon(
-                        Icons.calendar_today,
+                        Icons.person_add,
                         color: Colors.white,
                         size: 32,
                       ),
@@ -109,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     // Title
                     const Text(
-                      'Unireserv',
+                      'Registro de Usuario',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -118,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Inicia sesión para continuar',
+                      'Completa los campos para registrarte',
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
@@ -130,11 +132,43 @@ class _LoginScreenState extends State<LoginScreen> {
                     Column(
                       children: [
                         TextField(
-                          controller: _usernameController,
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Nombre',
+                            prefixIcon: Icon(Icons.person),
+                            hintText: 'Ingresa tu nombre',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _emailController,
                           decoration: const InputDecoration(
                             labelText: 'Correo',
                             prefixIcon: Icon(Icons.email),
                             hintText: 'Ingresa tu correo',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Profesor',
+                              child: Text('Profesor'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Alumno',
+                              child: Text('Alumno'),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRole = value!;
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Rol',
+                            prefixIcon: Icon(Icons.work),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -145,6 +179,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             labelText: 'Contraseña',
                             prefixIcon: Icon(Icons.lock),
                             hintText: 'Ingresa tu contraseña',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Confirmar Contraseña',
+                            prefixIcon: Icon(Icons.lock),
+                            hintText: 'Confirma tu contraseña',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _careerController,
+                          decoration: const InputDecoration(
+                            labelText: 'Carrera',
+                            prefixIcon: Icon(Icons.school),
+                            hintText: 'Ingresa tu carrera',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _departmentController,
+                          decoration: const InputDecoration(
+                            labelText: 'Departamento',
+                            prefixIcon: Icon(Icons.apartment),
+                            hintText: 'Ingresa tu departamento',
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -173,16 +235,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
 
-                        // Login button
+                        // Register button
                         SizedBox(
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _login,
+                            onPressed: _isLoading ? null : _register,
                             child: _isLoading
                                 ? const CircularProgressIndicator(
                                     color: Colors.white)
-                                : const Text('Iniciar Sesión'),
+                                : const Text('Registrarse'),
                           ),
                         ),
                       ],
@@ -190,54 +252,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 32),
 
-                    // Test credentials
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Column(
-                        children: [
-                          Text(
-                            'Credenciales de prueba:',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Cliente:',
-                                  style: TextStyle(color: Colors.grey)),
-                              Text('1 / 1',
-                                  style: TextStyle(color: Colors.white)),
-                            ],
-                          ),
-                          SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Admin:',
-                                  style: TextStyle(color: Colors.grey)),
-                              Text('123 / 123',
-                                  style: TextStyle(color: Colors.white)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Switch to register
+                    // Switch to login
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/register');
+                        Navigator.pushReplacementNamed(context, '/login');
                       },
                       child: const Text(
-                        '¿No tienes una cuenta? Regístrate',
+                        '¿Ya tienes una cuenta? Inicia sesión',
                         style: TextStyle(color: Colors.grey),
                       ),
                     ),
@@ -253,8 +274,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _careerController.dispose();
+    _departmentController.dispose();
     super.dispose();
   }
 }
